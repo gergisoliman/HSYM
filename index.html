@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>اجتماع شباب ثانوى</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                        amiri: ['Amiri', 'serif'],
+                    },
+                    colors: {
+                        darkbg: '#0f172a',
+                        darkcard: '#1e293b',
+                        darkborder: '#334155',
+                        lightbg: '#f1f5f9',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; }
+        .hidden-app { display: none !important; }
+        
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-open { transform: translateX(0); }
+        .sidebar-closed { transform: translateX(100%); }
+
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .dark .glass-nav {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(51, 65, 85, 0.8);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .verse-box { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); }
+        .dark .verse-box { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+        
+        /* Specific Button Colors */
+        .btn-whatsapp { background-color: #25D366; color: white; }
+        .btn-whatsapp:hover { background-color: #128C7E; }
+        .btn-call { background-color: #3b82f6; color: white; }
+        .btn-call:hover { background-color: #2563eb; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden bg-lightbg text-slate-800 dark:bg-darkbg dark:text-slate-100 flex flex-col relative">
+
+    <!-- إشعار النسخ (Toast) -->
+    <div id="toast" class="fixed top-24 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-5 py-2.5 rounded-full shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-[200] text-sm font-bold flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span id="toastMsg" dir="ltr" class="font-mono mt-0.5"></span>
+    </div>
+
+    <!-- شاشة تسجيل الدخول -->
+    <div id="loginScreen" class="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100] transition-opacity duration-500">
+        <div class="bg-white dark:bg-darkcard p-8 rounded-3xl shadow-2xl w-full max-w-md text-center border-t-4 border-blue-500 mx-4">
+            <div class="mb-6 flex justify-center">
+                <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full ring-4 ring-blue-100 dark:ring-blue-900/50">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 meeting-name-display">اجتماع شباب ثانوى</h2>
+            
+            <form onsubmit="checkPassword(event)" class="space-y-4">
+                <div class="text-right">
+                    <label class="block text-slate-600 dark:text-slate-400 text-sm font-bold mb-2 mr-1">رمز الدخول:</label>
+                    <input type="password" id="passwordInput" 
+                        class="w-full px-4 py-3 border border-slate-300 dark:border-darkborder dark:bg-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition text-center text-lg tracking-widest"
+                        placeholder="أدخل الرمز هنا" required>
+                </div>
+                <p id="errorMsg" class="text-red-500 text-sm hidden font-bold bg-red-50 dark:bg-red-900/20 p-2 rounded-lg border border-red-100 dark:border-red-900/30">رمز الدخول غير صحيح!</p>
+                <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition transform active:scale-95 flex justify-center items-center gap-2 mt-4">
+                    <span>تسجيل الدخول</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- التطبيق الأساسي -->
+    <div id="mainApp" class="hidden-app flex flex-col h-full w-full relative">
+        
+        <!-- الشريط العلوي الطافي -->
+        <header class="fixed top-3 left-3 right-3 z-40 mx-auto max-w-4xl glass-nav rounded-2xl px-4 py-2 flex justify-between items-center transition-all duration-300 select-none">
+            <div class="flex items-center gap-1 z-10 w-[30%]">
+                <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                </button>
+                <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200" id="themeToggleBtn"></button>
+            </div>
+            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center cursor-pointer pointer-events-auto w-max" onclick="showHome()">
+                <h1 class="text-[15px] md:text-lg font-black tracking-wide text-slate-900 dark:text-white leading-tight meeting-name-display text-center"></h1>
+                <span id="navSubtitle" class="text-[11px] md:text-xs text-blue-600 dark:text-blue-400 font-bold hidden mt-0.5 bg-blue-50 dark:bg-blue-900/30 px-3 py-0.5 rounded-full text-center"></span>
+            </div>
+            <div class="flex items-center justify-end z-10 w-[30%]">
+                <img src="" alt="Logo" class="logo-display h-9 w-9 md:h-11 md:w-11 object-contain rounded-full shadow-sm bg-white border border-slate-200 dark:border-slate-700"
+                onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzNCODJGNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7YtNio2KfYqDwvdGV4dD48L3N2Zz4='">
+            </div>
+        </header>
+
+        <!-- القائمة الجانبية -->
+        <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/40 z-40 hidden transition-opacity backdrop-blur-sm"></div>
+        <aside id="sidebar" class="fixed top-0 right-0 w-72 max-w-[80vw] h-full bg-white dark:bg-darkcard shadow-2xl z-50 sidebar-closed border-l border-slate-200 dark:border-darkborder flex flex-col">
+            <div class="p-5 flex justify-between items-center border-b border-slate-100 dark:border-darkborder mt-2">
+                <h2 class="text-lg font-black text-slate-800 dark:text-white">المراحل الدراسية</h2>
+                <button onclick="toggleSidebar()" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <nav class="p-4 flex-1 space-y-3 overflow-y-auto" id="sidebarNavContainer"></nav>
+            <div class="p-5 border-t border-slate-100 dark:border-darkborder text-center">
+                <button onclick="logout()" class="text-sm text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2 w-full p-3 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    تسجيل الخروج
+                </button>
+            </div>
+        </aside>
+
+        <!-- محتوى التطبيق -->
+        <main class="flex-1 overflow-hidden relative pt-[72px] pb-2">
+            
+            <!-- 1. الصفحة الرئيسية (الآية والمراحل) -->
+            <div id="homeView" class="h-full w-full overflow-y-auto px-4 py-6 flex flex-col items-center">
+                <div class="max-w-4xl w-full flex flex-col items-center space-y-8 pb-10">
+                    
+                    <div class="verse-box w-full p-10 md:p-14 rounded-[2rem] shadow-md border border-slate-200 dark:border-darkborder text-center relative overflow-hidden mt-4 cursor-pointer hover:shadow-lg transition" onclick="showHome()">
+                        <div class="absolute top-4 right-6 text-7xl opacity-5 text-slate-500 dark:text-slate-400 font-serif">"</div>
+                        <div class="absolute bottom-2 left-6 text-7xl opacity-5 text-slate-500 dark:text-slate-400 font-serif rotate-180">"</div>
+                        <p id="verseText" class="font-amiri text-[28px] md:text-[38px] leading-[1.9] md:leading-[1.9] text-slate-900 dark:text-white font-extrabold relative z-10 px-4 drop-shadow-sm"></p>
+                        <div class="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
+                    </div>
+
+                    <!-- كروت المراحل -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 w-full px-2" id="homeCardsContainer"></div>
+
+                    <!-- اللوجو -->
+                    <div class="pt-8">
+                        <img src="" alt="Logo" class="logo-display h-48 w-48 md:h-64 md:w-64 object-contain drop-shadow-xl bg-white dark:bg-white/5 rounded-full p-3 border border-slate-200 dark:border-slate-700"
+                        onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzNCODJGNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7YtNio2KfYqDwvdGV4dD48L3N2Zz4='">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. صفحة قائمة الأسماء (الافتقاد) -->
+            <div id="listView" class="hidden-app h-full flex flex-col px-3 md:px-4 max-w-4xl mx-auto w-full">
+                
+                <!-- أدوات البحث والرسالة -->
+                <div class="bg-white dark:bg-darkcard p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-darkborder mb-3 flex flex-col gap-2.5 z-10 shrink-0">
+                    <div>
+                        <textarea id="messageTemplate" rows="2" 
+                            class="w-full p-2.5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-[13px] resize-none transition-shadow placeholder-slate-400 dark:placeholder-slate-500"
+                            placeholder="اكتب رسالتك هنا... (سيتم استبدال @name بالاسم)"></textarea>
+                    </div>
+                    <div class="flex gap-2 w-full">
+                        <div class="relative flex-1">
+                            <input type="text" id="searchInput" placeholder="بحث بالاسم، الرقم..." 
+                                class="w-full p-2 pr-8 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-[13px] focus:ring-1 focus:ring-blue-500 transition-shadow">
+                            <svg class="absolute right-2.5 top-2.5 text-slate-400 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <select id="groupFilter" class="w-[45%] min-w-[120px] max-w-[250px] p-2 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-[12px] font-bold cursor-pointer focus:ring-1 focus:ring-blue-500 transition-shadow truncate">
+                            <option value="all">كل المجموعات</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-center items-center">
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400 font-bold bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                            العدد المعروض: <span id="countDisplay" class="text-blue-600 dark:text-blue-400">0</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- قائمة الأسماء -->
+                <div id="contactsList" class="overflow-y-auto flex-grow bg-transparent px-0.5 space-y-2.5 pb-24"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. ثوابت النظام (Configuration)
+        // ==========================================
+        const CONFIG = {
+            PASSWORD: "G101112",
+            MEETING_NAME: "اجتماع شباب ثانوى",
+            LOGO_IMAGE: "High school youth meeting Logo.png",
+            
+            STAGES: [
+                { id: "grade1", name: "الصف الأول الثانوى", symbol: "1" },
+                { id: "grade2", name: "الصف الثانى الثانوى", symbol: "2" },
+                { id: "grade3", name: "الصف الثالث الثانوى", symbol: "3" }
+            ]
+        };
+
+        // ==========================================
+        // 2. قاعدة البيانات (Data Base)
+        // ==========================================
+        const database = {
+            
+            grade1: [
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "جوناثان هاني إبراهيم", phone: "01203534649", whatsapp: "01203534649", address: "شارع الحصة (شارع البقاطره - عم موريس)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "باسم سليمان عبدالله", phone: "01553882828", whatsapp: "01553882828", address: "شارع الحصة (شارع السمعانيه - بجوار منزل ابونا مرقس سامي)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "فيلوباتير عبدالله شوقي", phone: "01220064606", whatsapp: "01220064606", address: "شارع الحصة (شارع منزل ابونا ابراهيم عبده)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "كيرلس ايمن مجدي", phone: "01287411557", whatsapp: "01287411557", address: "شارع الحصة (بجوار الحضانة - محل الأحذية)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مجدي ايمن مجدي", phone: "01287411451", whatsapp: "01287411451", address: "شارع الحصة (بجوار الحضانة - محل الأحذية)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "ماركوس مايكل سليمان", phone: "01204498009", whatsapp: "01204498009", address: "شارع الحصة (شارع عبدالله الخراط - د/ كريم النعماني)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "كيرلس فادي سليمان", phone: "01212710509", whatsapp: "01212710509", address: "شارع الحصة (شارع عبدالله الخراط - د/ كريم النعماني)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "فادي رضا عبده", phone: "01285893108", whatsapp: "01285893108", address: "شارع الحصة (امام منزل نزيه الخراط - بجوار منزل أ/انسى)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مينا نصر جورج", phone: "01280257299", whatsapp: "01280257299", address: "شارع الحصة (امام فيلا أحبيب عبده)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مارك هاني حبشي", phone: "01277913763", whatsapp: "01277913763", address: "شارع الحصة (شارع أ/حبيب عبده)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مايكل ميخائيل عبدالله", phone: "01284367854", whatsapp: "01284367854", address: "شارع الحصة (منزل ابونا غبريال منير - بجوار وجيه فؤاد)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "يوسف بنيامين عزيز", phone: "01064825680", whatsapp: "01064825680", address: "شارع الحصة (الشارع المقابل لشارع ابونا ابراهيم عبده - امام منزل عم زكريا)" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "فادي سامح سمير", phone: "01031600689", whatsapp: "01031600689", address: "شارع الحصة (فوق مكتبة الفادي)" },
+                
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "افرایم محب عبده", phone: "01274672051", whatsapp: "01274672051", address: "شارع الجسر (بجوار أ/سامي جرجس)" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "امین ماهر امین", phone: "01212377923", whatsapp: "01212377923", address: "شارع الجسر (شارع الأباء الكهنة)" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "فيلوباتير كرم إبراهيم", phone: "01289766367", whatsapp: "01289766367", address: "شارع الجسر (أمام منزل أ / محب جميل - منزل ابراهيم اسکندر)" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "سمير ايمن سمير", phone: "01212053970", whatsapp: "01212053970", address: "شارع الجسر (عند منزل أ/مجدي جرجس)" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "يوسف اشرف إبراهيم", phone: "01274533083", whatsapp: "01274533083", address: "شارع الجسر (شارع بعد شارع أ/عاطف معوض)" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "صموئيل سامي سمير", phone: "01225717410", whatsapp: "01225717410", address: "شارع الجسر (منتصف شارع أ/عاطف معوض)" },
+                
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "البير جان سمير", phone: "01274540791", whatsapp: "01274540791", address: "الكنيسة (بجوار منزل أ/حسني جرجس)" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "كيرلس مجدي رزق الله", phone: "01016335536", whatsapp: "01016335536", address: "الكنيسة (شارع عم ماهر جندى)" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "انطونيوس سامي سلامه", phone: "01201675957", whatsapp: "01201675957", address: "الكنيسة (بجوار مايكل الدبور)" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "مينا مجدي وجيه", phone: "01280521702", whatsapp: "01280521702", address: "الكنيسة (بجوار رمزي الجزار)" },
+                
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "بيشوي بولا يوسف", phone: "01286658130", whatsapp: "01286658130", address: "الكفرة الشرقية (شارع الكفره الشرقية)" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "فادي هاني عبدالله", phone: "01273535467", whatsapp: "01273535467", address: "الكفرة الشرقية (شارع أ/عاصم الراهب)" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "ابانوب إبراهيم الجميل", phone: "01272319094", whatsapp: "01272319094", address: "الكفرة الشرقية (عند بيت عم صموئيل)" },
+                
+                { group: "المجموعة الخامسة ( الجامع )", name: "جرجس صبحي عوض الله", phone: "01044297551", whatsapp: "01044297551", address: "الجامع (الشارع اللي بعد عم سامي عريان)" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "بيير منصور سليمان", phone: "01212933227", whatsapp: "01212933227", address: "الجامع (اخر شارع الطاحونة - عم عجيب)" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "ابانوب سعيد سليمان", phone: "01210793250", whatsapp: "01210793250", address: "الجامع (منتصف شارع الطاحونة)" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "بيير عماد ميخائيل", phone: "01026981283", whatsapp: "01026981283", address: "الجامع (اول شارع الطاحونة امام الطاحونة القديمة)" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "مينا هاني عبدالله", phone: "01270257327", whatsapp: "01270257327", address: "الجامع (بعد الكوبري)" }
+            ],
+
+            grade2: [
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "بولا ابراهيم اسحق", phone: "01212885759", whatsapp: "01212885759", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "جوزيف القس صليب", phone: "01271041615", whatsapp: "01271041615", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "أبانوب ماهر ميخائيل", phone: "01278152716", whatsapp: "01278152716", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مكسيموس عماد شوقی", phone: "01271073769", whatsapp: "01271073769", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "يوسف بنيامين عبدة", phone: "01270057685", whatsapp: "01270057685", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مينا عاطف عبد الله", phone: "01225738789", whatsapp: "01225738789", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مينا سامح سليمان", phone: "01208556907", whatsapp: "01208556907", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "ناجي أشرف ناجي", phone: "01204522300", whatsapp: "01204522300", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "عاطف هانی جونی", phone: "01228029889", whatsapp: "01228029889", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "كيرلس تادرس سليمان", phone: "01040612930", whatsapp: "01040612930", address: "شارع الحصة" },
+                { group: "المجموعة الأولى ( شارع الحصة )", name: "مينا ابراهيم سليمان", phone: "01203132922", whatsapp: "01203132922", address: "شارع الحصة" },
+                
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "کاراس عزت عبد الله", phone: "01212464315", whatsapp: "01212464315", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "انطونيوس هاني أمين", phone: "01273961667", whatsapp: "01273961667", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "جوزيف أنطون القمص", phone: "01285007404", whatsapp: "01285007404", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "جيوفاني مايكل سمير", phone: "01229926687", whatsapp: "01229926687", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "يوسف باسم كمال", phone: "01229494132", whatsapp: "01229494132", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "دانيال عماد عبد السيد", phone: "01284345102", whatsapp: "01284345102", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "عزیز عزت عزیز", phone: "01024055724", whatsapp: "01024055724", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "جرجس ماهر ابراهيم", phone: "01229316066", whatsapp: "01229316066", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "توماس ماهر رفیق", phone: "01205489731", whatsapp: "01205489731", address: "شارع الجسر" },
+                { group: "المجموعة الثانية ( شارع الجسر )", name: "ابرام لوقا ميخائيل", phone: "01226925951", whatsapp: "01226925951", address: "شارع الجسر" },
+                
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "فيلمون جورج زاهر", phone: "01229561824", whatsapp: "01229561824", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "مارك ماجد مرقس", phone: "01006495462", whatsapp: "01006495462", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "بولا عزت عبد المسيح", phone: "01205057714", whatsapp: "01205057714", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "كيرلس وليد عبد الله", phone: "01282347463", whatsapp: "01282347463", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "بولا عزيز ميخائيل", phone: "01202978694", whatsapp: "01202978694", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "يوسف أشرف سامى", phone: "01200882524", whatsapp: "01200882524", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "جان جرجس حبشي", phone: "01204662158", whatsapp: "01204662158", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "يوسف مسيحة سلامة", phone: "01204112008", whatsapp: "01204112008", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "بيشوى سامح جرجس", phone: "01226925991", whatsapp: "01225619883", address: "الكنيسة" },
+                { group: "المجموعة الثالثة ( الكنيسة )", name: "كيرلس لطيف عبده", phone: "01229224631", whatsapp: "01271797458", address: "الكنيسة" },
+                
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "كيرلس عماد نصيف", phone: "01207966144", whatsapp: "01207966144", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "يحي موسى لطيف", phone: "01203515797", whatsapp: "01203515797", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "يوسف عزت مسيحة", phone: "01224096420", whatsapp: "01224096420", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "بولا سامي نصيف", phone: "01203558162", whatsapp: "01203558162", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "سلیمان اسحق سليمان", phone: "01207522708", whatsapp: "01207522708", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "كيرلس منير ميخائيل", phone: "01228101751", whatsapp: "01271901318", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "أبانوب ماهر صبحي", phone: "01202843476", whatsapp: "01202843476", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "بافلى نادى نصر الله", phone: "01092507117", whatsapp: "01092507117", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "جورج ايمن صبحي", phone: "01202237662", whatsapp: "01202237662", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "بيشوى مجدی میخائیل", phone: "01097126758", whatsapp: "01097126758", address: "الكفرة الشرقية" },
+                { group: "المجموعة الرابعة ( الكفرة الشرقية )", name: "كيرلس سامی میخائیل", phone: "01096243671", whatsapp: "01096243671", address: "الكفرة الشرقية" },
+                
+                { group: "المجموعة الخامسة ( الجامع )", name: "توماس عطية عبده", phone: "01288050779", whatsapp: "01288050779", address: "الجامع" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "ناجي صبحي عطية", phone: "01205489530", whatsapp: "01205489530", address: "الجامع" },
+                { group: "المجموعة الخامسة ( الجامع )", name: "کاراس ميلاد عوض", phone: "01022107181", whatsapp: "01022107181", address: "الجامع" }
+            ],
+
+            grade3: [
+                { group: "الصف الثالث الثانوى", name: "ابانوب بنيامين شحاتة", phone: "01283955210", whatsapp: "01283955210", address: "" },
+                { group: "الصف الثالث الثانوى", name: "ابانوب عزت عزیز", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "انطون صبحي سليمان", phone: "01226495851", whatsapp: "01226495851", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بولا اسكندر", phone: "01200318616", whatsapp: "01200318616", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بولا بنيامين", phone: "01287867689", whatsapp: "01287867689", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بولا سلیمان ناجی", phone: "01207791364", whatsapp: "01207791364", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بيشوي عزت عوض الله", phone: "01203713286", whatsapp: "01203713286", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بيشوي هاني جرجس", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "توماس شنوده الطوخي", phone: "01212979193", whatsapp: "01212979193", address: "" },
+                { group: "الصف الثالث الثانوى", name: "جرجس عماد سمير", phone: "01090249211", whatsapp: "01090249211", address: "" },
+                { group: "الصف الثالث الثانوى", name: "جوزيف سمير", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "رومانی یوسف", phone: "01276312308", whatsapp: "01276312308", address: "" },
+                { group: "الصف الثالث الثانوى", name: "عماد مينا حنا", phone: "01223572089", whatsapp: "01223572089", address: "" },
+                { group: "الصف الثالث الثانوى", name: "عوض امین عوض", phone: "01503113201", whatsapp: "01503113201", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فادى شنوده یوسف", phone: "01017611203", whatsapp: "01017611203", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فادي صبحي اسكندر", phone: "01228624597", whatsapp: "01228624597", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فادي عماد عوض الله", phone: "01283801997", whatsapp: "01283801997", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فادي عماد كمال", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فادی هانی", phone: "01278133968", whatsapp: "01278133968", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فيلمون رضا عبده", phone: "01008314716", whatsapp: "01008314716", address: "" },
+                { group: "الصف الثالث الثانوى", name: "فيليو باتير عزت تادرس", phone: "01201308266", whatsapp: "01201308266", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس اشرف حنا", phone: "01272700129", whatsapp: "01272700129", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس ایمن اسحق", phone: "01064432340", whatsapp: "01064432340", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس را می تادرس", phone: "01271853714", whatsapp: "01271853714", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس نزيه", phone: "01207736154", whatsapp: "01207736154", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس عوض الله يوسف", phone: "01210600595", whatsapp: "01210600595", address: "" },
+                { group: "الصف الثالث الثانوى", name: "متاؤس سمير نصيف", phone: "01207949258", whatsapp: "01207949258", address: "" },
+                { group: "الصف الثالث الثانوى", name: "مينا بيشوي جرجس", phone: "01283925784", whatsapp: "01283925784", address: "" },
+                { group: "الصف الثالث الثانوى", name: "مينا صبحي صبري", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "هارفی هانی", phone: "01281688833", whatsapp: "01281688833", address: "" },
+                { group: "الصف الثالث الثانوى", name: "يوسف رأفت عطا", phone: "", whatsapp: "", address: "" },
+                { group: "الصف الثالث الثانوى", name: "انطون جان سمير", phone: "01098700589", whatsapp: "01098700589", address: "" },
+                { group: "الصف الثالث الثانوى", name: "بولس صرامون عبده", phone: "01205971319", whatsapp: "01205971319", address: "" },
+                { group: "الصف الثالث الثانوى", name: "كيرلس اشرف عبده", phone: "01069655863", whatsapp: "01069655863", address: "" }
+            ]
+        };
+
+        const palette = [
+            { borderHover: "hover:border-blue-400 dark:hover:border-blue-600", badgeBg: "bg-blue-50 dark:bg-slate-800", badgeText: "text-blue-600 dark:text-blue-400", hoverBg: "group-hover:bg-blue-600", sideBadgeBg: "bg-blue-100 dark:bg-blue-900/50", sideBadgeText: "text-blue-700 dark:text-blue-300", sideHover: "hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-slate-800" },
+            { borderHover: "hover:border-green-400 dark:hover:border-green-600", badgeBg: "bg-green-50 dark:bg-slate-800", badgeText: "text-green-600 dark:text-green-400", hoverBg: "group-hover:bg-green-600", sideBadgeBg: "bg-green-100 dark:bg-green-900/50", sideBadgeText: "text-green-700 dark:text-green-300", sideHover: "hover:border-green-300 hover:bg-green-50 dark:hover:bg-slate-800" },
+            { borderHover: "hover:border-purple-400 dark:hover:border-purple-600", badgeBg: "bg-purple-50 dark:bg-slate-800", badgeText: "text-purple-600 dark:text-purple-400", hoverBg: "group-hover:bg-purple-600", sideBadgeBg: "bg-purple-100 dark:bg-purple-900/50", sideBadgeText: "text-purple-700 dark:text-purple-300", sideHover: "hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-slate-800" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.title = CONFIG.MEETING_NAME;
+            document.querySelectorAll('.meeting-name-display').forEach(el => el.innerText = CONFIG.MEETING_NAME);
+            document.querySelectorAll('.logo-display').forEach(el => el.src = CONFIG.LOGO_IMAGE);
+            
+            const sidebarNav = document.getElementById('sidebarNavContainer');
+            const homeCards = document.getElementById('homeCardsContainer');
+            
+            sidebarNav.innerHTML = '';
+            homeCards.innerHTML = '';
+
+            CONFIG.STAGES.forEach((stage, index) => {
+                const color = palette[index % palette.length]; 
+                
+                const sideBtn = document.createElement('button');
+                sideBtn.onclick = () => selectGrade(stage.id);
+                sideBtn.className = `w-full text-right p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold transition flex items-center gap-3 shadow-sm ${color.sideHover}`;
+                sideBtn.innerHTML = `
+                    <span class="${color.sideBadgeBg} ${color.sideBadgeText} w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-sm">${stage.symbol}</span>
+                    <span>${stage.name}</span>
+                `;
+                sidebarNav.appendChild(sideBtn);
+
+                const cardBtn = document.createElement('button');
+                cardBtn.onclick = () => selectGrade(stage.id);
+                cardBtn.className = `bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-darkborder hover:shadow-lg transition-all duration-200 group flex flex-col items-center text-center ${color.borderHover}`;
+                cardBtn.innerHTML = `
+                    <div class="${color.badgeBg} ${color.badgeText} w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black mb-4 group-hover:text-white group-hover:-translate-y-1 transition-all shadow-sm ${color.hoverBg}">${stage.symbol}</div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white">${stage.name}</h3>
+                `;
+                homeCards.appendChild(cardBtn);
+            });
+        });
+
+        function checkPassword(e) {
+            e.preventDefault();
+            const input = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const loginScreen = document.getElementById('loginScreen');
+            const mainApp = document.getElementById('mainApp');
+
+            if (input === CONFIG.PASSWORD) {
+                loginScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loginScreen.style.display = 'none';
+                    mainApp.classList.remove('hidden-app');
+                    showHome(); 
+                }, 500);
+            } else {
+                errorMsg.classList.remove('hidden');
+                document.getElementById('passwordInput').classList.add('border-red-500', 'ring-1', 'ring-red-500');
+            }
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggleBtn');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+            } else {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+            }
+        }
+        
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+        document.getElementById('themeToggleBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('sidebar-closed')) {
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('sidebar-closed');
+                sidebar.classList.remove('sidebar-open');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        const verses = [
+            "أَمْ خِدْمَةٌ فَفِي الْخِدْمَةِ، أَمِ الْمُعَلِّمُ فَفِي التَّعْلِيمِ (رو 12: 7)",
+            "خُذْ مَرْقُسَ وَأَحْضِرْهُ مَعَكَ لأَنَّهُ نَافِعٌ لِي لِلْخِدْمَةِ (2تى 4: 11)",
+            "وَافْتَقِدْ سَلاَمَةَ إِخْوَتِكَ (1صم 17: 18)",
+            "فَتَرَكَ دَاوُدُ الأَمْتِعَةَ... وَرَكَضَ إِلَى الصَّفِّ وَسَأَلَ عَنْ سَلاَمَةِ إِخْوَتِهِ (1صم 17: 22)",
+            "مَجْدًا مِنَ النَّاسِ لَسْتُ أَقْبَلُ (يو 5: 41)",
+            "لَيْسَ لِي فَرَحٌ أَعْظَمُ مِنْ هذَا: أَنْ أَسْمَعَ عَنْ أَوْلاَدِي أَنَّهُمْ يَسْلُكُونَ بِالْحَقِّ (3يو 1: 4)",
+            "مَلْعُونٌ مَنْ يَعْمَلُ عَمَلَ الرَّبِّ بِرِخَاءٍ (ار 48: 10)",
+            "نَائِلِينَ غَايَةَ إِيمَانِكُمْ خَلاَصَ النُّفُوسِ (1بط 1: 9)",
+            "لاَ تُهْمِلِ الْمَوْهِبَةَ الَّتِي فِيكَ (1تى 4: 14)",
+            "تَكَلَّمْ بِهذِهِ، وَعِظْ، وَوَبِّخْ بِكُلِّ سُلْطَانٍ. لاَ يَسْتَهِنْ بِكَ أَحَدٌ (تي 2: 15)",
+            "لاَ يَسْتَهِنْ أَحَدٌ بِحَدَاثَتِكَ، بَلْ كُنْ قُدْوَةً لِلْمُؤْمِنِينَ (1تى 4: 12)",
+            "لاَحِظْ نَفْسَكَ وَالتَّعْلِيمَ وَدَاوِمْ عَلَى ذلِكَ (1تى 4: 16)",
+            "مَنْ أَرَادَ أَنْ يَكُونَ فِيكُمْ عَظِيمًا فَلْيَكُنْ لَكُمْ خَادِمًا (مت 20: 26)",
+            "لأَنَّ ابْنَ الإِنْسَانِ أَيْضًا لَمْ يَأْتِ لِيُخْدَمَ بَلْ لِيَخْدِمَ وَلِيَبْذِلَ نَفْسَهُ فِدْيَةً (مر 10: 45)",
+            "بِالْمَحَبَّةِ اخْدِمُوا بَعْضُكُمْ بَعْضًا (غلا 5: 13)",
+            "كُلُّ مَا فَعَلْتُمُوهُ بِأَحَدِ إِخْوَتِي هؤُلاَءِ الأَصَاغِرِ، فَبِي فَعَلْتُمْ (مت 25: 40)",
+            "مُكْثِرِينَ فِي عَمَلِ الرَّبِّ كُلَّ حِينٍ، عَالِمِينَ أَنَّ تَعَبَكُمْ لَيْسَ بَاطِلاً فِي الرَّبِّ (1كو 15: 58)",
+            "اِخْدِمُوا الرَّبَّ بِفَرَحٍ، ادْخُلُوا إِلَى حَضْرَتِهِ بِتَرَنُّمٍ (مز 100: 2)",
+            "لِيُضِيءَ نُورُكُمْ هكَذَا قُدَّامَ النَّاسِ لِكَيْ يَرَوْا أَعْمَالَكُمُ الْحَسَنَةَ (مت 5: 16)",
+            "لأَنَّنَا نَحْنُ عَمَلُهُ، مَخْلُوقِينَ فِي الْمَسِيحِ يَسُوعَ لأَعْمَال صَالِحَةٍ (أف 2: 10)",
+            "وَكُلُّ مَا فَعَلْتُمْ، فَاعْمَلُوا مِنَ الْقَلْبِ، كَمَا لِلرَّبِّ لَيْسَ لِلنَّاسِ (كو 3: 23)",
+            "عَالِمِينَ أَنَّكُمْ مِنَ الرَّبِّ سَتَأْخُذُونَ جَزَاءَ الْمِيرَاثِ، لأَنَّكُمْ تَخْدِمُونَ الرَّبَّ الْمَسِيحَ (كو 3: 24)",
+            "كَمَا نَالَ كُلُّ وَاحِدٍ مَوْهِبَةً، اخْدِمُوا بِهَا بَعْضُكُمْ بَعْضًا (1بط 4: 10)",
+            "إِنْ كَانَ أَحَدٌ يَخْدِمُ فَلْيَخْدِمْ كَأَنَّهُ مِنْ قُوَّةٍ يَمْنَحُهَا اللهُ (1بط 4: 11)",
+            "ارْعَوْا رَعِيَّةَ اللهِ الَّتِي بَيْنَكُمْ، نُظَّارًا، لاَ عَنِ اضْطِرَارٍ بَلْ بِالاخْتِيَارِ (1بط 5: 2)",
+            "فَاذْهَبُوا وَتَلْمِذُوا جَمِيعَ الأُمَمِ وَعَمِّدُوهُمْ (مت 28: 19)"
+        ];
+
+        function showHome() {
+            document.getElementById('homeView').classList.remove('hidden-app');
+            document.getElementById('listView').classList.add('hidden-app');
+            
+            const subtitle = document.getElementById('navSubtitle');
+            subtitle.classList.add('hidden');
+            subtitle.innerText = '';
+            
+            const randomVerse = verses[Math.floor(Math.random() * verses.length)];
+            document.getElementById('verseText').innerText = randomVerse;
+        }
+
+        // ==========================================
+        // 7. منطق الضغطة المطولة للنسخ (Long Press)
+        // ==========================================
+        window.isLongPress = false;
+        let pressTimer;
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        function copyToClipboardFallback(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text);
+            } else {
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try { document.execCommand('copy'); } catch (err) { console.error('Fallback: Oops, unable to copy', err); }
+                textArea.remove();
+            }
+        }
+
+        function startPress(e) {
+            const target = e.target.closest('.copy-action');
+            if (!target) return;
+            
+            window.isLongPress = false;
+            pressTimer = setTimeout(() => {
+                window.isLongPress = true;
+                const num = target.getAttribute('data-copy');
+                if (num) {
+                    copyToClipboardFallback(num);
+                    showToast(num);
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    
+                    target.style.opacity = '0.5';
+                    setTimeout(() => target.style.opacity = '1', 200);
+                }
+            }, 500); // 500 ملي ثانية للضغطة الطويلة
+        }
+
+        function cancelPress() {
+            clearTimeout(pressTimer);
+        }
+
+        document.addEventListener('touchstart', startPress, {passive: true});
+        document.addEventListener('touchend', cancelPress);
+        document.addEventListener('touchmove', cancelPress);
+        document.addEventListener('mousedown', startPress);
+        document.addEventListener('mouseup', cancelPress);
+        document.addEventListener('mouseleave', cancelPress);
+
+
+        // ==========================================
+        // 8. منطق القائمة والبحث والأكورديون
+        // ==========================================
+        
+        let currentActiveContacts = [];
+        const messageInput = document.getElementById('messageTemplate');
+        const groupFilter = document.getElementById('groupFilter');
+        const searchInput = document.getElementById('searchInput');
+        const contactsList = document.getElementById('contactsList');
+        const countDisplay = document.getElementById('countDisplay');
+
+        function selectGrade(gradeId) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('sidebar-open')) {
+                toggleSidebar();
+            }
+            
+            document.getElementById('homeView').classList.add('hidden-app');
+            document.getElementById('listView').classList.remove('hidden-app');
+            
+            const subtitle = document.getElementById('navSubtitle');
+            subtitle.classList.remove('hidden');
+            
+            const stageObj = CONFIG.STAGES.find(s => s.id === gradeId);
+            if(stageObj) subtitle.innerText = stageObj.name;
+
+            prepareListData(gradeId);
+        }
+
+        function prepareListData(gradeId) {
+            currentActiveContacts = (database[gradeId] || []).filter(c => c.name.trim() !== "");
+            
+            const groups = [...new Set(currentActiveContacts.map(c => c.group))].filter(g => g !== "");
+            groupFilter.innerHTML = '<option value="all">كل المجموعات</option>';
+            
+            groups.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.innerText = g;
+                groupFilter.appendChild(opt);
+            });
+
+            searchInput.value = '';
+            groupFilter.value = 'all';
+
+            renderList();
+        }
+
+        function generateMessage(template, fullName) {
+            if (!template) return "";
+            const firstName = fullName.trim().split(' ')[0];
+            return template.replace(/@name/g, firstName);
+        }
+
+        function getWhatsAppLink(waNum, text) {
+            if (!waNum) return "";
+            let cleanNum = waNum.replace(/\D/g, '');
+            if (!cleanNum.startsWith('2')) cleanNum = '2' + cleanNum;
+            
+            return text && text.trim().length > 0 
+                ? `https://wa.me/${cleanNum}?text=${encodeURIComponent(text)}`
+                : `https://wa.me/${cleanNum}`;
+        }
+
+        function toggleDetails(id) {
+            const detailsDiv = document.getElementById(id);
+            if (detailsDiv.classList.contains('hidden')) {
+                detailsDiv.classList.remove('hidden');
+                detailsDiv.classList.add('flex');
+            } else {
+                detailsDiv.classList.add('hidden');
+                detailsDiv.classList.remove('flex');
+            }
+        }
+
+        function renderList() {
+            const template = messageInput.value;
+            const selectedGroup = groupFilter.value;
+            const searchTerm = searchInput.value.trim().toLowerCase();
+            
+            const hasText = template && template.trim().length > 0;
+            const btnLabel = hasText ? "إرسال" : "مراسلة";
+
+            contactsList.innerHTML = '';
+
+            let filteredContacts = currentActiveContacts;
+
+            if (selectedGroup !== 'all') {
+                filteredContacts = filteredContacts.filter(c => c.group === selectedGroup);
+            }
+
+            if (searchTerm) {
+                filteredContacts = filteredContacts.filter(c => 
+                    c.name.toLowerCase().includes(searchTerm) || 
+                    (c.whatsapp && c.whatsapp.includes(searchTerm)) || 
+                    (c.phone && c.phone.includes(searchTerm))
+                );
+            }
+
+            countDisplay.innerText = filteredContacts.length;
+
+            if(filteredContacts.length === 0) {
+                contactsList.innerHTML = `<div class="text-center p-8 mt-6 bg-white dark:bg-darkcard rounded-2xl border border-slate-200 dark:border-darkborder text-slate-500 dark:text-slate-400 font-bold">لا توجد بيانات لهذه المرحلة أو لا يوجد تطابق لبحثك.</div>`;
+                return;
+            }
+
+            filteredContacts.forEach((contact, index) => {
+                const message = generateMessage(template, contact.name);
+                
+                const waLink = getWhatsAppLink(contact.whatsapp, message);
+                const waLinkNoText = getWhatsAppLink(contact.whatsapp, "");
+                const callLink = contact.phone ? `tel:${contact.phone}` : "";
+
+                const hasNumbers = !!(contact.phone || contact.whatsapp);
+
+                const row = `
+                    <div class="bg-white dark:bg-darkcard rounded-2xl shadow-sm border border-slate-200 dark:border-darkborder p-3 flex flex-col gap-2 hover:shadow-md transition-all cursor-pointer select-none" onclick="toggleDetails('details-${index}')">
+                        
+                        <!-- القسم العلوي: الاسم والأزرار -->
+                        <div class="flex justify-between items-start w-full gap-2">
+                            <div class="flex items-start gap-2 overflow-hidden flex-1 pt-0.5">
+                                <span class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 font-mono text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-lg shrink-0 border border-indigo-200 dark:border-indigo-800/50 shadow-sm">${index + 1}</span>
+                                <div class="flex flex-col overflow-hidden w-full">
+                                    <h3 class="font-extrabold text-slate-800 dark:text-slate-100 text-[14px] md:text-base leading-tight truncate">${contact.name}</h3>
+                                    
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md font-bold max-w-max mt-1 truncate">
+                                        ${contact.group}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- الأزرار الرئيسية -->
+                            ${hasNumbers ? `
+                            <div class="flex gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                                ${contact.phone ? `
+                                <a href="${callLink}" data-copy="${contact.phone}" onclick="if(window.isLongPress){event.preventDefault(); return false;} event.stopPropagation()" class="copy-action btn-call flex items-center justify-center gap-1 w-[60px] h-[30px] rounded-lg font-bold shadow-sm text-[11px] transition-transform active:scale-95" title="اتصال: ${contact.phone}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                    اتصال
+                                </a>` : ''}
+
+                                ${contact.whatsapp ? `
+                                <a href="${waLink}" target="_blank" data-copy="${contact.whatsapp}" onclick="if(window.isLongPress){event.preventDefault(); return false;} event.stopPropagation()" class="copy-action btn-whatsapp flex items-center justify-center gap-1 w-[64px] h-[30px] rounded-lg font-bold shadow-sm text-[11px] transition-transform active:scale-95" title="واتساب: ${contact.whatsapp}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.305-.883-.653-1.48-1.459-1.653-1.756-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.405-.272.33-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                    ${btnLabel}
+                                </a>` : ''}
+                            </div>
+                            ` : `<div onclick="event.stopPropagation()"><span class="text-[10px] text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">بدون أرقام</span></div>`}
+                        </div>
+
+                        <!-- القسم الأوسط: معاينة الرسالة -->
+                        <div class="flex flex-col w-full mt-1">
+                            <div class="text-[11px] text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-200 dark:border-slate-700/80 truncate w-full shadow-inner" title="${message}">
+                                ${message || '<span class="text-slate-400 dark:text-slate-500 italic">... اكتب رسالة لتظهر هنا ...</span>'}
+                            </div>
+                        </div>
+
+                        <!-- القسم المخفي: التفاصيل الإضافية (العنوان الكامل والأرقام) -->
+                        <div id="details-${index}" class="hidden flex-col gap-2.5 mt-1 pt-3 border-t border-slate-100 dark:border-slate-700 transition-all">
+                            ${contact.address ? `
+                                <div class="text-[12px] text-slate-700 dark:text-slate-300 leading-relaxed font-semibold bg-blue-50/50 dark:bg-blue-900/10 p-2 rounded-lg border border-blue-100 dark:border-blue-900/30">
+                                    <span class="text-blue-500 dark:text-blue-400 font-bold ml-1">📍 العنوان:</span> ${contact.address}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="flex flex-wrap gap-2" onclick="event.stopPropagation()">
+                                ${contact.phone ? `
+                                    <a href="${callLink}" data-copy="${contact.phone}" onclick="if(window.isLongPress){event.preventDefault(); return false;}" class="copy-action flex-1 text-[12px] text-slate-700 dark:text-slate-300 flex items-center justify-between gap-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                                        <div class="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                                            <span class="font-bold">مكالمات:</span> 
+                                        </div>
+                                        <span class="font-mono text-[12px] font-bold tracking-wider" dir="ltr">${contact.phone}</span>
+                                    </a>
+                                ` : ''}
+                                ${contact.whatsapp ? `
+                                    <a href="${waLinkNoText}" target="_blank" data-copy="${contact.whatsapp}" onclick="if(window.isLongPress){event.preventDefault(); return false;}" class="copy-action flex-1 text-[12px] text-slate-700 dark:text-slate-300 flex items-center justify-between gap-1.5 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                                        <div class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.305-.883-.653-1.48-1.459-1.653-1.756-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.405-.272.33-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                                            <span class="font-bold">واتساب:</span> 
+                                        </div>
+                                        <span class="font-mono text-[12px] font-bold tracking-wider" dir="ltr">${contact.whatsapp}</span>
+                                    </a>
+                                ` : ''}
+                    </div>
+                `;
+                contactsList.innerHTML += row;
+            });
+        }
+
+        // مستمعات الأحداث
+        messageInput.addEventListener('input', renderList);
+        groupFilter.addEventListener('change', renderList);
+        searchInput.addEventListener('input', renderList);
+
+    </script>
+</body>
+</html>
