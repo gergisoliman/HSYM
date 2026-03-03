@@ -103,18 +103,23 @@
         
         <!-- الشريط العلوي الطافي -->
         <header class="fixed top-3 left-3 right-3 z-40 mx-auto max-w-4xl glass-nav rounded-2xl px-4 py-2 flex justify-between items-center transition-all duration-300 select-none">
+            <!-- الجزء الأيمن: القائمة والمظهر -->
             <div class="flex items-center gap-1 z-10 w-[30%]">
                 <button onclick="toggleSidebar()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
                 <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200" id="themeToggleBtn"></button>
             </div>
-            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center cursor-pointer pointer-events-auto w-max" onclick="showHome()">
+            
+            <!-- الجزء الأوسط: العنوان (يعود للصفحة الرئيسية عند الضغط عليه) -->
+            <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center cursor-pointer pointer-events-auto w-max transition hover:opacity-80" onclick="showHome()" title="العودة للرئيسية">
                 <h1 class="text-[15px] md:text-lg font-black tracking-wide text-slate-900 dark:text-white leading-tight meeting-name-display text-center"></h1>
                 <span id="navSubtitle" class="text-[11px] md:text-xs text-blue-600 dark:text-blue-400 font-bold hidden mt-0.5 bg-blue-50 dark:bg-blue-900/30 px-3 py-0.5 rounded-full text-center"></span>
             </div>
+
+            <!-- الجزء الأيسر: اللوجو (يُحدث الصفحة عند الضغط عليه) -->
             <div class="flex items-center justify-end z-10 w-[30%]">
-                <img src="" alt="Logo" class="logo-display h-9 w-9 md:h-11 md:w-11 object-contain rounded-full shadow-sm bg-white border border-slate-200 dark:border-slate-700"
+                <img src="" alt="Logo" class="logo-display h-9 w-9 md:h-11 md:w-11 object-contain rounded-full shadow-sm dark:shadow-none bg-white dark:bg-transparent border border-slate-200 dark:border-transparent cursor-pointer transition transform hover:scale-105" onclick="location.reload()" title="تحديث الموقع"
                 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzNCODJGNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7YtNio2KfYqDwvdGV4dD48L3N2Zz4='">
             </div>
         </header>
@@ -156,7 +161,7 @@
 
                     <!-- اللوجو -->
                     <div class="pt-8">
-                        <img src="" alt="Logo" class="logo-display h-48 w-48 md:h-64 md:w-64 object-contain drop-shadow-xl bg-white dark:bg-white/5 rounded-full p-3 border border-slate-200 dark:border-slate-700"
+                        <img src="" alt="Logo" class="logo-display h-48 w-48 md:h-64 md:w-64 object-contain drop-shadow-xl bg-white dark:bg-transparent rounded-full p-3 border border-slate-200 dark:border-transparent"
                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48Y2lyY2xlIGN4PSI1MCIgY3k9IjUwIiByPSI0MCIgZmlsbD0iIzNCODJGNiIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjIwIiBmaWxsPSIjRkZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7YtNio2KfYqDwvdGV4dD48L3N2Zz4='">
                     </div>
                 </div>
@@ -202,7 +207,7 @@
         // 1. ثوابت النظام (Configuration)
         // ==========================================
         const CONFIG = {
-            PASSWORD: "1234",
+            PASSWORD: "123",
             MEETING_NAME: "اجتماع شباب ثانوى",
             LOGO_IMAGE: "High school youth meeting Logo.png",
             
@@ -366,6 +371,9 @@
             CONFIG.STAGES.forEach((stage, index) => {
                 const color = palette[index % palette.length]; 
                 
+                // حساب العدد الديناميكي للأسماء في هذه المرحلة (تجاهل الأسماء الفارغة)
+                const contactsCount = (database[stage.id] || []).filter(c => c.name.trim() !== "").length;
+                
                 const sideBtn = document.createElement('button');
                 sideBtn.onclick = () => selectGrade(stage.id);
                 sideBtn.className = `w-full text-right p-3.5 rounded-xl border border-slate-100 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold transition flex items-center gap-3 shadow-sm ${color.sideHover}`;
@@ -377,10 +385,14 @@
 
                 const cardBtn = document.createElement('button');
                 cardBtn.onclick = () => selectGrade(stage.id);
-                cardBtn.className = `bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-darkborder hover:shadow-lg transition-all duration-200 group flex flex-col items-center text-center ${color.borderHover}`;
+                // إضافة الأنيميشن (transform hover:-translate-y-2 hover:scale-105 hover:shadow-2xl)
+                cardBtn.className = `bg-white dark:bg-darkcard p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-darkborder hover:shadow-2xl transform hover:-translate-y-2 hover:scale-105 transition-all duration-300 ease-out group flex flex-col items-center text-center ${color.borderHover} cursor-pointer relative overflow-hidden`;
                 cardBtn.innerHTML = `
-                    <div class="${color.badgeBg} ${color.badgeText} w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black mb-4 group-hover:text-white group-hover:-translate-y-1 transition-all shadow-sm ${color.hoverBg}">${stage.symbol}</div>
-                    <h3 class="text-xl font-black text-slate-800 dark:text-white">${stage.name}</h3>
+                    <div class="${color.badgeBg} ${color.badgeText} w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black mb-4 group-hover:text-white group-hover:-translate-y-2 group-hover:shadow-md transition-all duration-300 shadow-sm ${color.hoverBg}">${stage.symbol}</div>
+                    <h3 class="text-xl font-black text-slate-800 dark:text-white relative z-10">${stage.name}</h3>
+                    <div class="mt-3 text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700 px-3 py-1.5 rounded-lg group-hover:bg-slate-100 dark:group-hover:bg-slate-700 transition-colors w-full flex items-center justify-center gap-1 relative z-10">
+                        العدد: <span class="${color.badgeText} font-black text-base mx-0.5">${contactsCount}</span> مخدوم
+                    </div>
                 `;
                 homeCards.appendChild(cardBtn);
             });
@@ -729,6 +741,7 @@
                                         <span class="font-mono text-[12px] font-bold tracking-wider" dir="ltr">${contact.whatsapp}</span>
                                     </a>
                                 ` : ''}
+
                     </div>
                 `;
                 contactsList.innerHTML += row;
@@ -742,5 +755,4 @@
 
     </script>
 </body>
-
 </html>
